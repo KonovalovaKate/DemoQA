@@ -1,0 +1,43 @@
+name: Cypress Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ESLint and Cypress plugin
+        run: |
+          npm install --save-dev eslint @eslint/js eslint-plugin-cypress
+
+      - name: Run ESLint
+        run: |
+          npx eslint cypress/
+
+  cypress-run:
+    needs: eslint
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/included:13.6.0
+      options: --user 1001
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Cypress tests
+        run: |
+          cypress run --browser chrome --headless
+
