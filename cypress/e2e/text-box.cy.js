@@ -18,7 +18,7 @@ describe("DemoQA Text Box via POM", () => {
     textBoxPo.verifyOutput(data);
   });
 
-  it("highlights email field in red when invalid", () => {
+  it("highlights email field in red when its invalid", () => {
     const badEmail = "bad@";
     textBoxPo.fill({
       name: data.name,
