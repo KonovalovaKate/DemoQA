@@ -1,43 +1,42 @@
-name: Cypress Tests
+name: CI Checks
 
 on:
-  push:
-    branches: [ main, master, develop ]
+  # Перевірка при кожному мержі (точніше, при створенні/оновленні PR)
   pull_request:
-    branches: [ main, master, develop ]
-  workflow_dispatch:
+    branches:
+      - main
+      - master
+
+  # Запуск тестів за розкладом
+  schedule:
+    # Раз на тиждень у суботу о 00:00 за UTC
+    - cron: '0 0 * * 6'
 
 jobs:
-  eslint:
+  # Робота для перевірки лінтера
+  lint:
     runs-on: ubuntu-latest
+    # Запускаємо тільки якщо це PR
+    if: github.event_name == 'pull_request'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
+      - uses: actions/checkout@v4
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - run: npm ci
+      - run: npm run lint
 
-      - name: Install ESLint and Cypress plugin
-        run: |
-          npm install --save-dev eslint @eslint/js eslint-plugin-cypress
-
-      - name: Run ESLint
-        run: |
-          npx eslint cypress/
-
-  cypress-run:
-    needs: eslint
+  # Робота для запуску тестів
+  test:
     runs-on: ubuntu-latest
-    container:
-      image: cypress/included:13.6.0
-      options: --user 1001
+    # Запускаємо тільки за розкладом
+    if: github.event_name == 'schedule'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Cypress tests
-        run: |
-          cypress run --browser chrome --headless
-
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm test
